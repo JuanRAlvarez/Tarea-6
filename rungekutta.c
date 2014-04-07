@@ -1,3 +1,63 @@
+/*terms for runge kutta*/
+FLOAT *xmed;
+FLOAT *ymed;
+FLOAT *zmed;
+FLOAT *xold;
+FLOAT *yold;
+FLOAT *zold;
+FLOAT *x1;
+FLOAT *x2;
+FLOAT *x3;
+FLOAT *y1;
+FLOAT *y2;
+FLOAT *y3;
+FLOAT *v_x1;
+FLOAT *v_x2;
+FLOAT *v_x3;
+FLOAT *v_y1;
+FLOAT *v_y2;
+FLOAT *v_y3;
+FLOAT *v_z1;
+FLOAT *v_z2;
+FLOAT *v_z3;
+FLOAT *v_xmed;
+FLOAT *v_ymed;
+FLOAT *v_zmed;
+FLOAT *v_xold;
+FLOAT *v_yold;
+FLOAT *v_zold;
+FLOAT *a_xold;
+FLOAT *a_yold;
+FLOAT *a_zold;
+FLOAT *k1_x;
+FLOAT *k1_p_x;
+FLOAT *k2_x;
+FLOAT *k2_p_x;
+FLOAT *k3_x;
+FLOAT *k3_p_x;
+FLOAT *k4_x;
+FLOAT *k4_p_x;
+FLOAT *k1_y;
+FLOAT *k1_p_y;
+FLOAT *k2_y;
+FLOAT *k2_p_y;
+FLOAT *k3_y;
+FLOAT *k3_p_y;
+FLOAT *k4_y;
+FLOAT *k4_p_y;
+FLOAT *k1_z;
+FLOAT *k1_p_z;
+FLOAT *k2_z;
+FLOAT *k2_p_z;
+FLOAT *k3_z;
+FLOAT *k3_p_z;
+FLOAT *k4_z;
+FLOAT *k4_p_z;
+
+
+/*memory allocation*/
+
+
 xold[i] = x[i];
 v_xold[i] = v_x[i];
 a_xold[i] = a_x[i];
