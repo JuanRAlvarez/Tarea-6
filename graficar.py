@@ -1,10 +1,14 @@
 import pylab as plt
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
 
-datos = np.loadtxt("3cuerpos.dat")
+data = np.loadtxt("3cuerpos.dat")
 
-plt.scatter(datos[:,0],datos[:,1],c='r')
-plt.scatter(datos[:,2],datos[:,3],c='g')
-plt.scatter(datos[:,4],datos[:,5],c='b')
+fig = plt.figure()
+ax = fig.gca(projection='3d')
 
-plt.show()
+ax.plot(data[:,0],data[:,1],data[:,2])
+ax.plot(data[:,3],data[:,4],data[:,5])
+ax.plot(data[:,6],data[:,7],data[:,8])
+
+plt.savefig("Grafica3d.pdf")

@@ -87,8 +87,8 @@ int main(int argc, char **argv){
   FLOAT *mass;
 
   /*timestep variables*/
-  FLOAT h= 0.2;
-  int n_steps = (int)(5000.0/h);
+  FLOAT h= 0.001;
+  int n_steps = (int)(100.0/h);
   int n_points = 3;
   FLOAT radius = 100.0;
   FLOAT unit_mass = 1.0; 
@@ -259,7 +259,7 @@ int main(int argc, char **argv){
           v_z[j] = v_z[j] + h*(1.0/6.0)*(k_1_v_z[j]+2*k_2_v_z[j]+2*k_3_v_z[j]+k_4_v_z[j]);
       }
       for(k=0;k<n_points;k++){
-          fprintf(in,"%f %f ", x[k], y[k]);
+          fprintf(in," %f %f %f ", x[k], y[k], z[k]);
       }
       fprintf(in,"\n");
   }
@@ -306,9 +306,11 @@ void initialize_vel(FLOAT *vx, FLOAT *vy, FLOAT *vz, int n_points, FLOAT vel, FL
   delta_theta = 2.0*PI/n_points;
   
   for(i=0;i<3;i++){
-    vx[i] = -sin(delta_theta * i) * vel;
-    vy[i] = cos(delta_theta * i) * vel;
-    vz[i] = 0.0;
+    //vx[i] = -sin(delta_theta * i) * vel;
+    //vy[i] = cos(delta_theta * i) * vel;
+      vx[i] = 0.0;
+      vy[i] = 0.0;
+      vz[i] = vel;
   }  
 
     
