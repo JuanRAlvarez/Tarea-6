@@ -37,14 +37,23 @@ int main(int argc, char **argv){
     
     FILE *in;
     
+    FLOAT erre;
+    FLOAT theta;
+    
     in = fopen("IC.dat","w");
     
     fprintf(in, "%i %f %f %f %f %f %f \n", ID, x0, y0, z0, v_0x,v_0y,v_0z);
     
-    ID = 1;
     for (i=0; i<N; i++) {
-        x = R*2*(drand48()-0.5) + x0;
-        y = R*2*(drand48()-0.5) + y0;
+        
+        ID = i;
+        
+        erre = drand48() * R;
+        theta = 2*PI*drand48();
+        
+        
+        x = pow(erre,0.5)*cos(theta) + x0;
+        y = pow(erre,0.5)*sin(theta) + y0;
         z = 0 + z0;
         
         v_x = -y;
