@@ -9,7 +9,7 @@
 /*
  * Units:
  * Mass: solar masses
- * Distance: astronomical units
+ * Distance: parsecs
  * Time: years  
  */
 
@@ -27,6 +27,18 @@ FLOAT *getmemory(int n_points){
  */
 void initpos(FLOAT *x, FLOAT *y, FLOAT *z, int n_points){
 
+  int i; 
+  FLOAT R = 20;
+  FLOAT theta, phi, r, xi, yi, zi;
+  for( i = 1; i <= n_points ; i++){
+    theta = acos(drand48()*2-1);
+    phi = drand48()*TAU;
+    r = (np.random.rand(n)**(1/3.0))*R;
+    xi = r*np.sin(theta)*np.cos(phi);
+    yi = r*np.sin(theta)*np.sin(phi);
+    zi = r*np.cos(theta);
+
+  }
 }
 
 
