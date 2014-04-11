@@ -33,7 +33,7 @@ void initpos(FLOAT *x, FLOAT *y, FLOAT *z, int n_points){
   for( i = 1; i <= n_points ; i++){
     theta = acos(drand48()*2-1);
     phi = drand48()*TAU;
-    r = drand48()*R/3.0;
+    r = pow(drand48() , 1/3.0)*R;
     xi = r*sin(theta)*cos(phi);
     yi = r*sin(theta)*sin(phi);
     zi = r*cos(theta);
