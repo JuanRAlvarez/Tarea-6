@@ -168,9 +168,132 @@ int main(int argc, char **argv){
     printf("%f %i %i \n",T,M, n_points);
     
     
-    /*EL RUNGE-KUTTAZO ESTÁ INSPIRADO EN EL DEL MAIN DE 3 CUERPOS
+    /*EL RUNGE-KUTTAZO ESTÁ INSPIRADO EN EL DEL MAIN DE 3 CUERPOS*
      
-     
+     /*implementation of a second order runge kutta integration*/
+    
+    FILE *in;
+    in = fopen("3cuerpos.dat","w");
+    
+    FLOAT *x_old;
+    FLOAT *y_old;
+    
+    for(i=0;i<n_steps;i++){
+        
+        a_x_old = a_x;
+        a_y_old = a_y;
+        a_z_old = a_z;
+        
+        get_acceleration(a_x, a_y, a_z, x, y, z, mass, n_points);
+        for(j=0;j<n_points;j++){
+            
+            k_1_x[j] = v_x[j];
+            k_1_y[j] = v_y[j];
+            k_1_z[j] = v_z[j];
+            
+            k_1_v_x[j] = a_x[j];
+            k_1_v_y[j] = a_y[j];
+            k_1_v_z[j] = a_z[j];
+            
+            
+            //FIRST STEP
+            
+            xtemp[j] = x[j] + (h/2.0)*k_1_x[j];
+            ytemp[j] = y[j] + (h/2.0)*k_1_y[j];
+            ztemp[j] = z[j] + (h/2.0)*k_1_z[j];
+            
+            v_xtemp[j] = v_x[j] + (h/2.0)*k_1_v_x[j];
+            v_ytemp[j] = v_y[j] + (h/2.0)*k_1_v_y[j];
+            v_ztemp[j] = v_z[j] + (h/2.0)*k_1_v_z[j];
+            
+            k_2_x[j] = v_xtemp[j];
+            k_2_y[j] = v_ytemp[j];
+            k_2_z[j] = v_ztemp[j];
+            
+        }
+        
+        get_acceleration(a_xtemp,a_ytemp,a_ztemp,xtemp,ytemp,ztemp, mass, n_points);
+        
+        for(j=0;j<n_points;j++){
+            
+            k_2_v_x[j] = a_xtemp[j];
+            k_2_v_y[j] = a_ytemp[j];
+            k_2_v_z[j] = a_ztemp[j];
+            
+            
+            //SECOND STEP
+            
+            xtemp[j] = x[j] + (h/2.0)*k_2_x[j];
+            ytemp[j] = y[j] + (h/2.0)*k_2_y[j];
+            ztemp[j] = z[j] + (h/2.0)*k_2_z[j];
+            
+            v_xtemp[j] = v_x[j] + (h/2.0)*k_2_v_x[j];
+            v_ytemp[j] = v_y[j] + (h/2.0)*k_2_v_y[j];
+            v_ztemp[j] = v_z[j] + (h/2.0)*k_2_v_z[j];
+            
+            k_3_x[j] = v_xtemp[j];
+            k_3_y[j] = v_ytemp[j];
+            k_3_z[j] = v_ztemp[j];
+            
+        }
+        
+        get_acceleration(a_xtemp,a_ytemp,a_ztemp,xtemp,ytemp,ztemp, mass, n_points);
+        
+        for(j=0;j<n_points;j++){
+            
+            k_3_v_x[j] = a_xtemp[j];
+            k_3_v_y[j] = a_ytemp[j];
+            k_3_v_z[j] = a_ztemp[j];
+            
+            
+            //THIRD STEP
+            
+            xtemp[j] = x[j] + h*k_3_x[j];
+            ytemp[j] = y[j] + h*k_3_y[j];
+            ztemp[j] = z[j] + h*k_3_z[j];
+            
+            v_xtemp[j] = v_x[j] + h*k_3_v_x[j];
+            v_ytemp[j] = v_y[j] + h*k_3_v_y[j];
+            v_ztemp[j] = v_z[j] + h*k_3_v_z[j];
+            
+            k_4_x[j] = v_xtemp[j];
+            k_4_y[j] = v_ytemp[j];
+            k_4_z[j] = v_ztemp[j];
+            
+        }
+        
+        get_acceleration(a_xtemp,a_ytemp,a_ztemp,xtemp,ytemp,ztemp, mass, n_points);
+        
+        for(j=0;j<n_points;j++){
+            
+            k_4_v_x[j] = a_xtemp[j];
+            k_4_v_y[j] = a_ytemp[j];
+            k_4_v_z[j] = a_ztemp[j];
+            
+            
+            //FOURTH STEP
+            
+            x[j] = x[j] + h*(1.0/6.0)*(k_1_x[j]+2*k_2_x[j]+2*k_3_x[j]+k_4_x[j]);
+            y[j] = y[j] + h*(1.0/6.0)*(k_1_y[j]+2*k_2_y[j]+2*k_3_y[j]+k_4_y[j]);
+            z[j] = z[j] + h*(1.0/6.0)*(k_1_z[j]+2*k_2_z[j]+2*k_3_z[j]+k_4_z[j]);
+            
+            v_x[j] = v_x[j] + h*(1.0/6.0)*(k_1_v_x[j]+2*k_2_v_x[j]+2*k_3_v_x[j]+k_4_v_x[j]);
+            v_y[j] = v_y[j] + h*(1.0/6.0)*(k_1_v_y[j]+2*k_2_v_y[j]+2*k_3_v_y[j]+k_4_v_y[j]);
+            v_z[j] = v_z[j] + h*(1.0/6.0)*(k_1_v_z[j]+2*k_2_v_z[j]+2*k_3_v_z[j]+k_4_v_z[j]);
+        }
+        
+        for(k=0;k<n_points;k++){
+            fprintf(in," %f %f %f %f ", x[k], y[k], v_x[k], v_y[k]);
+        }
+        
+        kinetic = get_kinetic(v_x, v_y, v_z, mass, n_points);
+        potential = get_potential(x, y, z, mass, n_points);
+        
+        fprintf(in,"%f %f \n", kinetic,potential);
+    }
+    fclose(in);
+    
+}
      
      */
     

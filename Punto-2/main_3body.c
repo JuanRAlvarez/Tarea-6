@@ -85,8 +85,8 @@ int main(int argc, char **argv){
   FLOAT *a_ztemp;
     
     /*POTENTIAL & KINETIC ENERGIES*/
-  FLOAT kinetic;
-  FLOAT potential;
+  FLOAT kinetic = 0.0;
+  FLOAT potential = 0.0;
     
   /*masses*/
   FLOAT *mass;
@@ -152,7 +152,7 @@ int main(int argc, char **argv){
   initialize_vel(v_x,v_y,v_z, n_points, vel_initial, radius);
   initialize_mass(mass, n_points, unit_mass);
 
-  /*implementation of a second order runge kutta integration*/
+  /*implementation of a fourth order runge kutta integration*/
     
     FILE *in;
     in = fopen("3cuerpos.dat","w");
@@ -265,13 +265,13 @@ int main(int argc, char **argv){
       }
       
       for(k=0;k<n_points;k++){
-          fprintf(in," %f %f %f ", x[k], y[k], z[k]);
+          fprintf(in," %f %f %f %f ", x[k], y[k], v_x[k], v_y[k]);
       }
       
       kinetic = get_kinetic(v_x, v_y, v_z, mass, n_points);
       potential = get_potential(x, y, z, mass, n_points);
       
-      fprintf(in,"%f \n", kinetic+potential);
+      fprintf(in,"%f %f \n", kinetic,potential);
   }
     fclose(in);
     
@@ -301,6 +301,8 @@ void get_acceleration(FLOAT *ax, FLOAT *ay, FLOAT *az, FLOAT *x, FLOAT *y, FLOAT
 FLOAT get_kinetic(FLOAT *v_x, FLOAT *v_y, FLOAT *v_z, FLOAT *mass, int n_points){
     int i;
     FLOAT kinetic;
+    kinetic = 0.0;
+    
     
     for (i=0; i<n_points; i++) {
         kinetic += 0.5*mass[i]*(pow(v_x[i],2)+pow(v_y[i],2)+pow(v_z[i],2));
@@ -309,15 +311,16 @@ FLOAT get_kinetic(FLOAT *v_x, FLOAT *v_y, FLOAT *v_z, FLOAT *mass, int n_points)
 }
 
 FLOAT get_potential(FLOAT *x, FLOAT *y, FLOAT *z, FLOAT *mass, int n_points){
-    FLOAT potential;
     int i,j;
     FLOAT r_ij;
+    FLOAT potential;
+    potential = 0.0;
     for (i=0; i<n_points; i++) {
         for (j=0; j<n_points; j++) {
             if (i!=j) {
                 r_ij = (pow((x[i] - x[j]),2.0) + pow((y[i] - y[j]),2.0) + pow((z[i] - z[j]),2.0));
                 r_ij = sqrt(r_ij);
-                potential += -G_GRAV * mass[i]*mass[j]/r_ij;
+                potential += -G_GRAV * (mass[i] * mass[j]) / r_ij;
             }
         }
     }
