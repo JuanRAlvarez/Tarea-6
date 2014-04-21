@@ -10,14 +10,18 @@ void print_status(FLOAT *x, FLOAT *y, FLOAT *z, FLOAT *vx, FLOAT *vy, FLOAT *vz,
 void get_acceleration(FLOAT *ax, FLOAT *ay, FLOAT *az, FLOAT *x, FLOAT *y, FLOAT *z, FLOAT *mass, int n_points, int *ID);
 FLOAT get_kinetic(FLOAT *v_x, FLOAT *v_y, FLOAT *v_z, FLOAT *mass, int n_points);
 FLOAT get_potential(FLOAT *x, FLOAT *y, FLOAT *z, FLOAT *mass, int n_points);
+int count_lines(char *filename);
 
 int main(int argc, char **argv){
-    
+
     //Obtengo los parámetros del mundo exterior
     FLOAT T = atof(argv[1]);
     int M = atoi(argv[2]);
     int n_points = atoi(argv[3]);
     
+    int lineas;
+    
+    lineas = count_lines("IC.dat");
     
     /*accelerations of all particles*/
     FLOAT *a_x;
@@ -73,11 +77,6 @@ int main(int argc, char **argv){
     FLOAT *a_ytemp;
     FLOAT *a_ztemp;
     
-    /*NOTA! TODAVÍA NO SÉ CÓMO CALCULAR EL TAMAÑO DEL ARCHIVO QUE VIENE COMO PARÁMETRO DE ENTRADA. POR AHORA, ESTOY PENSANDO DEJARLO COMO UN PARÁMETRO DE ENTRADA DE ESTE ARCHIVO
-     Y PROCEDER A INGRESAR ESTE VALOR CUANDO TENGA UN MAKEFILE*/
-    
-    int i;
-    
     int *ID;
     FLOAT *x;
     FLOAT *y;
@@ -91,8 +90,7 @@ int main(int argc, char **argv){
     
     /*timestep variables*/
     FLOAT h= 0.001;
-    int n_steps = (int)(100.0/h);
-    int n_points = 3;
+    int n_steps = (int)(1.0/h);
     FLOAT radius = 100.0;
     FLOAT unit_mass = 1.0;
     FLOAT vel_initial = sqrt((11.0/3.0) * G_GRAV * unit_mass / (sqrt(3.0)*radius));
@@ -151,26 +149,15 @@ int main(int argc, char **argv){
     
     //VOY A LEER EL ARCHIVO. POR AHORA ME SALE UN SEGMENTATION FAULT. :(
     
-    /*for (i=0; i<n_points; i++) {
-        fscanf(in1,"%i %f %f %f %f %f %f \n", &(ID[i]),&(x[i]),&(y[i]),&(z[i]),&(v_x[i]),&(v_y[i]),&(v_z[i]));
+    for (i=0; i<lineas; i++) {
+        fscanf(in1,"%d %f %f %f %f %f %f \n", &(ID[i]),&(x[i]),&(y[i]),&(z[i]),&(v_x[i]),&(v_y[i]),&(v_z[i]));
     }
     
     fclose(in1);
     
+    /*EL RUNGE-KUTTAZO ESTÁ INSPIRADO EN EL DEL MAIN DE 3 CUERPOS*/
      
-    
-    for (i=0; i<10; i++) {
-        printf("%i\n",ID[i]);
-    }
-    
-    return 0;*/
-    
-    printf("%f %i %i \n",T,M, n_points);
-    
-    
-    /*EL RUNGE-KUTTAZO ESTÁ INSPIRADO EN EL DEL MAIN DE 3 CUERPOS*
-     
-     /*implementation of a second order runge kutta integration*/
+     /*implementation of a fourth order runge kutta integration*/
     
     FILE *in;
     in = fopen("3cuerpos.dat","w");
@@ -184,7 +171,7 @@ int main(int argc, char **argv){
         a_y_old = a_y;
         a_z_old = a_z;
         
-        get_acceleration(a_x, a_y, a_z, x, y, z, mass, n_points);
+        get_acceleration(a_x, a_y, a_z, x, y, z, mass, n_points,ID);
         for(j=0;j<n_points;j++){
             
             k_1_x[j] = v_x[j];
@@ -212,7 +199,7 @@ int main(int argc, char **argv){
             
         }
         
-        get_acceleration(a_xtemp,a_ytemp,a_ztemp,xtemp,ytemp,ztemp, mass, n_points);
+        get_acceleration(a_xtemp,a_ytemp,a_ztemp,xtemp,ytemp,ztemp, mass, n_points, ID);
         
         for(j=0;j<n_points;j++){
             
@@ -237,7 +224,7 @@ int main(int argc, char **argv){
             
         }
         
-        get_acceleration(a_xtemp,a_ytemp,a_ztemp,xtemp,ytemp,ztemp, mass, n_points);
+        get_acceleration(a_xtemp,a_ytemp,a_ztemp,xtemp,ytemp,ztemp, mass, n_points,ID);
         
         for(j=0;j<n_points;j++){
             
@@ -262,7 +249,7 @@ int main(int argc, char **argv){
             
         }
         
-        get_acceleration(a_xtemp,a_ytemp,a_ztemp,xtemp,ytemp,ztemp, mass, n_points);
+        get_acceleration(a_xtemp,a_ytemp,a_ztemp,xtemp,ytemp,ztemp, mass, n_points,ID);
         
         for(j=0;j<n_points;j++){
             
@@ -286,16 +273,9 @@ int main(int argc, char **argv){
             fprintf(in," %f %f %f %f ", x[k], y[k], v_x[k], v_y[k]);
         }
         
-        kinetic = get_kinetic(v_x, v_y, v_z, mass, n_points);
-        potential = get_potential(x, y, z, mass, n_points);
-        
-        fprintf(in,"%f %f \n", kinetic,potential);
+        fprintf(in,"\n");
     }
     fclose(in);
-    
-}
-     
-     */
     
 }
 
@@ -318,10 +298,8 @@ void get_acceleration(FLOAT *ax, FLOAT *ay, FLOAT *az, FLOAT *x, FLOAT *y, FLOAT
                 ax[i] += -G_GRAV *mass[j]/ pow(r_ij,1.5) * (x[i] - x[j]);
                 ay[i] += -G_GRAV *mass[j]/ pow(r_ij,1.5) * (y[i] - y[j]);
                 az[i] += -G_GRAV *mass[j] / pow(r_ij,1.5) * (z[i] - z[j]);
-                
+                }
             }
-        }
-        }
     }
 }
 
@@ -361,4 +339,26 @@ FLOAT * get_memory(int n_points){
         exit(1);
     }
     return x;
+}
+
+int count_lines(char *filename){
+    FILE *in;
+    int n_lines;
+    int c;
+    if(!(in=fopen(filename, "r"))){
+        printf("problem opening file %s\n", filename);
+        exit(1);
+    }
+    
+    n_lines = 0;
+    do{
+        c = fgetc(in);
+        if(c=='\n'){
+            n_lines++;
+        }
+    }while(c!=EOF);
+    
+    rewind(in);
+    fclose(in);
+    return n_lines;
 }

@@ -11,8 +11,8 @@ void initialize_vel(FLOAT *vx, FLOAT *vy, FLOAT *vz, int n_points, FLOAT vel, FL
 void initialize_mass(FLOAT *mass, int n_points, FLOAT unit_mass);
 void print_status(FLOAT *x, FLOAT *y, FLOAT *z, FLOAT *vx, FLOAT *vy, FLOAT *vz, FLOAT *ax, FLOAT *ay, FLOAT *az, int n_points);
 void get_acceleration(FLOAT *ax, FLOAT *ay, FLOAT *az, FLOAT *x, FLOAT *y, FLOAT *z, FLOAT *mass, int n_points);
-FLOAT get_kinetic(FLOAT *v_x, FLOAT *v_y, FLOAT *v_z, FLOAT *mass, int n_points);
-FLOAT get_potential(FLOAT *x, FLOAT *y, FLOAT *z, FLOAT *mass, int n_points);
+FLOAT get_kinetic(FLOAT *x, FLOAT *y, FLOAT *z, FLOAT *vx, FLOAT *vy, FLOAT *vz, FLOAT *ax, FLOAT *ay, FLOAT *az, FLOAT *mass, int n_points);
+FLOAT get_potential(FLOAT *x, FLOAT *y, FLOAT *z, FLOAT *vx, FLOAT *vy, FLOAT *vz, FLOAT *ax, FLOAT *ay, FLOAT *az, FLOAT *mass, int n_points);
 
 /* ESTE CÓDIGO ESTÁ BASADO EN EL CÓDIGO DEL PROFESOR JAIME FORERO (github.com/forero), PERO TIENE ALGUNAS MODIFICACIONES, A SABER:
  se implementa el método de runge kutta de cuarto orden
@@ -84,9 +84,6 @@ int main(int argc, char **argv){
   FLOAT *a_ytemp;
   FLOAT *a_ztemp;
     
-    /*POTENTIAL & KINETIC ENERGIES*/
-  FLOAT kinetic = 0.0;
-  FLOAT potential = 0.0;
     
   /*masses*/
   FLOAT *mass;
@@ -98,6 +95,8 @@ int main(int argc, char **argv){
   FLOAT radius = 100.0;
   FLOAT unit_mass = 1.0; 
   FLOAT vel_initial = sqrt((11.0/3.0) * G_GRAV * unit_mass / (sqrt(3.0)*radius));
+  FLOAT kinetic;
+  FLOAT potential;
   int i,j,k;
   
   /*memory allocation*/
@@ -111,9 +110,6 @@ int main(int argc, char **argv){
   a_y = get_memory(n_points);
   a_z = get_memory(n_points);
   mass = get_memory(n_points);
-  a_x_old = get_memory(n_points);
-  a_y_old = get_memory(n_points);
-  a_z_old = get_memory(n_points);
   k_1_x = get_memory(n_points);
   k_1_y = get_memory(n_points);
   k_1_z = get_memory(n_points);
@@ -152,13 +148,10 @@ int main(int argc, char **argv){
   initialize_vel(v_x,v_y,v_z, n_points, vel_initial, radius);
   initialize_mass(mass, n_points, unit_mass);
 
-  /*implementation of a fourth order runge kutta integration*/
+  /*implementation of a second order runge kutta integration*/
     
     FILE *in;
     in = fopen("3cuerpos.dat","w");
-    
-    FLOAT *x_old;
-    FLOAT *y_old;
     
   for(i=0;i<n_steps;i++){
       
@@ -263,15 +256,12 @@ int main(int argc, char **argv){
           v_y[j] = v_y[j] + h*(1.0/6.0)*(k_1_v_y[j]+2*k_2_v_y[j]+2*k_3_v_y[j]+k_4_v_y[j]);
           v_z[j] = v_z[j] + h*(1.0/6.0)*(k_1_v_z[j]+2*k_2_v_z[j]+2*k_3_v_z[j]+k_4_v_z[j]);
       }
-      
       for(k=0;k<n_points;k++){
-          fprintf(in," %f %f %f %f ", x[k], y[k], v_x[k], v_y[k]);
+          fprintf(in," %f %f %f ", x[k], y[k], z[k]);
       }
-      
-      kinetic = get_kinetic(v_x, v_y, v_z, mass, n_points);
-      potential = get_potential(x, y, z, mass, n_points);
-      
-      fprintf(in,"%f %f \n", kinetic,potential);
+      kinetic = get_kinetic(x, y, z, v_x, v_y, v_z, a_x, a_y, a_z, mass, n_points);
+      potential = get_potential(x, y, z, v_x, v_y, v_z, a_x, a_y, a_z, mass, n_points);
+      fprintf(in,"%f %f \n",kinetic, potential);
   }
     fclose(in);
     
@@ -298,35 +288,6 @@ void get_acceleration(FLOAT *ax, FLOAT *ay, FLOAT *az, FLOAT *x, FLOAT *y, FLOAT
   }  
 }
 
-FLOAT get_kinetic(FLOAT *v_x, FLOAT *v_y, FLOAT *v_z, FLOAT *mass, int n_points){
-    int i;
-    FLOAT kinetic;
-    kinetic = 0.0;
-    
-    
-    for (i=0; i<n_points; i++) {
-        kinetic += 0.5*mass[i]*(pow(v_x[i],2)+pow(v_y[i],2)+pow(v_z[i],2));
-    }
-    return kinetic;
-}
-
-FLOAT get_potential(FLOAT *x, FLOAT *y, FLOAT *z, FLOAT *mass, int n_points){
-    int i,j;
-    FLOAT r_ij;
-    FLOAT potential;
-    potential = 0.0;
-    for (i=0; i<n_points; i++) {
-        for (j=0; j<n_points; j++) {
-            if (i!=j) {
-                r_ij = (pow((x[i] - x[j]),2.0) + pow((y[i] - y[j]),2.0) + pow((z[i] - z[j]),2.0));
-                r_ij = sqrt(r_ij);
-                potential += -G_GRAV * (mass[i] * mass[j]) / r_ij;
-            }
-        }
-    }
-    return potential/2;
-}
-
 void initialize_pos(FLOAT *x, FLOAT *y, FLOAT *z, int n_points, FLOAT radius){
   int i; 
   FLOAT delta_theta;
@@ -347,7 +308,7 @@ void initialize_vel(FLOAT *vx, FLOAT *vy, FLOAT *vz, int n_points, FLOAT vel, FL
   for(i=0;i<3;i++){
     vx[i] = -sin(delta_theta * i) * vel;
     vy[i] = cos(delta_theta * i) * vel;
-    vz[i] = 0;
+      vz[i] = 0.0;
   }  
 
     
@@ -358,6 +319,36 @@ void initialize_mass(FLOAT *mass, int n_points, FLOAT unit_mass){
   for (i=0;i<n_points;i++){
     mass[i] = (i+1) * unit_mass;
   }
+}
+
+FLOAT get_kinetic(FLOAT *x, FLOAT *y, FLOAT *z, FLOAT *vx, FLOAT *vy, FLOAT *vz, FLOAT *ax, FLOAT *ay, FLOAT *az, FLOAT *mass, int n_points){
+    
+    FLOAT kinetic;
+    int i;
+    for (i=0; i<n_points; i++) {
+        kinetic += mass[i]*(pow(vx[i],2)+pow(vy[i],2)+pow(vz[i],2));
+    }
+    
+    return kinetic;
+}
+
+FLOAT get_potential(FLOAT *x, FLOAT *y, FLOAT *z, FLOAT *vx, FLOAT *vy, FLOAT *vz, FLOAT *ax, FLOAT *ay, FLOAT *az, FLOAT *mass, int n_points){
+    
+    FLOAT potential;
+    FLOAT r_ij;
+    int i,j;
+    for (i=0; i<n_points; i++) {
+        for (j=0; j<n_points; j++) {
+            if (j!=i) {
+                r_ij = (pow((x[i] - x[j]),2.0) + pow((y[i] - y[j]),2.0) + pow((z[i] - z[j]),2.0));
+                r_ij = sqrt(r_ij);
+                potential += G_GRAV*mass[i]*mass[j]/(r_ij);
+            }
+            
+        }
+    }
+    
+    return -potential;
 }
 
 FLOAT * get_memory(int n_points){
