@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#define FLOAT float
+#define FLOAT double
 #define PI 3.141592653589793
 #define G_GRAV 4.296E-6 //units of (km*2 * kpc) msun*-1 s*-2
 
@@ -97,7 +97,7 @@ int main(int argc, char **argv){
 
   /*timestep variables*/
   FLOAT h= 0.01;
-  int n_steps = (int)(T*M/h);
+  int n_steps = (int)(T/(M*h));
   FLOAT radius;
   FLOAT unit_mass = 1.0;
   FLOAT time;
@@ -155,20 +155,22 @@ int main(int argc, char **argv){
   a_ytemp = get_memory(n_points);
   a_ztemp = get_memory(n_points);
     
-    /*Initialization of velocities and positions given by IC.dat*/
+    /*Initialization of velocities and positions given by filename*/
     
     FILE *in1;
-    in1 = fopen("IC.dat","r");
+    in1 = fopen(filename,"r");
     
     for (i=0; i<n_points; i++) {
-        fscanf(in1,"%d %f %f %f %f %f %f %f \n", &(ID[i]),&(x[i]),&(y[i]),&(z[i]),&(v_x[i]),&(v_y[i]),&(v_z[i]), &(mass[i]));
+        fscanf(in1,"%d %le %le %le %le %le %le %le \n", &(ID[i]),&(x[i]),&(y[i]),&(z[i]),&(v_x[i]),&(v_y[i]),&(v_z[i]), &(mass[i]));
     }
     
     fclose(in1);
 
   /*implementation of a fourth order runge kutta integration*/
     
-  for(i=0;i<n_steps;i++){
+  for(i=0;i<(M+1)*n_steps;i++){
+      
+      time += h;
       
     get_acceleration(a_x, a_y, a_z, x, y, z, mass, n_points, ID);
     for(j=0;j<n_points;j++){
@@ -267,27 +269,26 @@ int main(int argc, char **argv){
           v_y[j] = v_y[j] + h*(1.0/6.0)*(k_1_v_y[j]+2*k_2_v_y[j]+2*k_3_v_y[j]+k_4_v_y[j]);
           v_z[j] = v_z[j] + h*(1.0/6.0)*(k_1_v_z[j]+2*k_2_v_z[j]+2*k_3_v_z[j]+k_4_v_z[j]);
       }
-      //kinetic = get_kinetic(x, y, z, v_x, v_y, v_z, a_x, a_y, a_z, mass, n_points);
-      //potential = get_potential(x, y, z, v_x, v_y, v_z, a_x, a_y, a_z, mass, n_points);
+      
+      
+      if(i%n_steps==0 && i!=0){
+          
+          printf("%le\n",time);
+          
+          l++;
+          char str[12];
+          sprintf(str,"%d%s", l, ".dat");
+          
+          FILE *in;
+          in = fopen(str,"w");
+          for(k=0;k<n_points;k++){
+              fprintf(in,"%d %le %le %le %le %le %le \n", ID[k],x[k], y[k], z[k], v_x[k], v_y[k], v_z[k]);
+          }
+          fclose(in);
+      }
   }
     
     
-    for (l=0; l<M; l++) {
-        
-    if ((time - T*l)<=h) {
-       
-        char str[12];
-        sprintf(str,"%d%s", l+1, ".dat");
-        
-        FILE *in;
-        in = fopen(str,"w");
-    for(k=0;k<n_points;k++){
-        fprintf(in,"%d %f %f %f %f %f %f \n", ID[k],x[k], y[k], z[k], v_x[k], v_y[k], v_z[k]);
-    }
-        fclose(in);
-    }}
-    
-
 
 return 0;
 }
@@ -300,7 +301,6 @@ void get_acceleration(FLOAT *ax, FLOAT *ay, FLOAT *az, FLOAT *x, FLOAT *y, FLOAT
         ax[i]=0.0;
         ay[i]=0.0;
         az[i]=0.0;
-        
         
         /*Las partículas sólo sienten la masa de aquellas que tienen ID negativo*/
         

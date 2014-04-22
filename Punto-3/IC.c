@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#define FLOAT float
+#define FLOAT double
 #define PI 3.141592653589793
 #define G_GRAV 4.296E-6 //units of (km*2 * kpc) msun*-1 s*-2
+#define kmstokpcgyr 1.022
 
 FLOAT *get_memory(int n_points);
 
@@ -27,7 +28,7 @@ int main(int argc, char **argv){
     FLOAT R = atof(argv[9]);
     int N = atoi(argv[10]);
     
-    //
+    char *filename = argv[11];
     
     srand48(seed);
     
@@ -49,9 +50,11 @@ int main(int argc, char **argv){
     FLOAT erre;
     FLOAT theta;
     
-    in = fopen("IC.dat","w");
+    in = fopen(filename,"w");
     
-    fprintf(in, "%i %f %f %f %f %f %f %f \n", ID, x0, y0, z0, v_0x,v_0y,v_0z, M);
+    fprintf(in, "%i %le %le %le %le %le %le %le \n", ID, x0, y0, z0, v_0x,v_0y,v_0z, M);
+    
+    
     
     for (i=0; i<N; i++) {
         
@@ -60,10 +63,8 @@ int main(int argc, char **argv){
         theta = 2*PI*drand48();
         
         
-        //x = pow(erre,0.5)*cos(theta) + x0;
-        //y = pow(erre,0.5)*sin(theta) + y0;
-        x = cos(theta) + x0;
-        y = sin(theta) + y0;
+        x = pow(erre,0.5)*cos(theta) + x0;
+        y = pow(erre,0.5)*sin(theta) + y0;
         z = 0 + z0;
         
         r = sqrt(pow(x-x0,2)+pow(y-y0,2)+pow(z-z0,2));
@@ -87,7 +88,7 @@ int main(int argc, char **argv){
         
         mass = 1.0;
         
-         fprintf(in, "%i %f %f %f %f %f %f %f \n", ID, x, y, z, v_x,v_y,v_z, mass);
+         fprintf(in, "%i %le %le %le %le %le %le %le \n", ID, x, y, z, v_x,v_y,v_z, mass);
         
     }
     
