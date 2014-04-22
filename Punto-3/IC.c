@@ -84,8 +84,6 @@ int main(int argc, char **argv){
             v_z= v_0z;
         }
         
-        
-        
         mass = 1.0;
         
          fprintf(in, "%i %le %le %le %le %le %le %le \n", ID, x, y, z, v_x,v_y,v_z, mass);
