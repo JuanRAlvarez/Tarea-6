@@ -1,0 +1,4 @@
+1) Muchos algoritmos son faciles de explicar, dificiles de implementar
+2) La computacion en paralelo es todo un paradigma de programacion no solo parfors
+3) Aprender sobre algoritmos es importantísmo, no es sufuciente tener un mejor computador
+4) humildad
