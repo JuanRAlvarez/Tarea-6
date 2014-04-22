@@ -9,7 +9,8 @@ FLOAT *get_memory(int n_points);
 
 int main(int argc, char **argv){
     
-    srand48(100);
+    
+    //Obtengo los parámetros del mundo real. 1,2,3 posiciones x,y,z. 4,5,6 velocidades iniciales 7,8,9 semilla, masa punto central, radio círculo, 10 es el número de partículas
     
     int i;
     
@@ -21,9 +22,14 @@ int main(int argc, char **argv){
     FLOAT v_0y = atof(argv[5]);
     FLOAT v_0z = atof(argv[6]);
     
-    FLOAT M = atof(argv[7]);
-    FLOAT R = atof(argv[8]);
-    int N = atoi(argv[9]);
+    int seed = atoi(argv[7]);
+    FLOAT M = atof(argv[8]);
+    FLOAT R = atof(argv[9]);
+    int N = atoi(argv[10]);
+    
+    //
+    
+    srand48(seed);
     
     FLOAT x;
     FLOAT y;
@@ -50,21 +56,34 @@ int main(int argc, char **argv){
     for (i=0; i<N; i++) {
         
         ID = i+1;
-        
+        erre = drand48() * R;
         theta = 2*PI*drand48();
         
         
+        //x = pow(erre,0.5)*cos(theta) + x0;
+        //y = pow(erre,0.5)*sin(theta) + y0;
         x = cos(theta) + x0;
         y = sin(theta) + y0;
-        z = z0;
+        z = 0 + z0;
         
         r = sqrt(pow(x-x0,2)+pow(y-y0,2)+pow(z-z0,2));
         
-        vel = sqrt(G_GRAV * M / r);
+        if (r!=0) {
+            
+            
+            vel = sqrt(G_GRAV * M / r);
+            
+            v_x = v_0x - vel*(y-y0)/r;
+            v_y = v_0y + vel*(x-x0)/r;
+            v_z = v_0z;
+        }
+        else{
+            v_x = v_0x - vel;
+            v_y = v_0y;
+            v_z= v_0z;
+        }
         
-        v_x = v_0x -vel*(y-y0)/r;
-        v_y = v_0y +vel*(x-x0)/r;
-        v_z = v_0z;
+        
         
         mass = 1.0;
         
