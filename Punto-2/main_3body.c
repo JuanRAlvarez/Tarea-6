@@ -90,7 +90,7 @@ int main(int argc, char **argv){
 
   /*timestep variables*/
   FLOAT h= 0.001;
-  int n_steps = (int)(100.0/h);
+  int n_steps = (int)(100/h);
   int n_points = 3;
   FLOAT radius = 100.0;
   FLOAT unit_mass = 1.0; 
@@ -279,9 +279,9 @@ void get_acceleration(FLOAT *ax, FLOAT *ay, FLOAT *az, FLOAT *x, FLOAT *y, FLOAT
       if(j!=i){
           r_ij = (pow((x[i] - x[j]),2.0) + pow((y[i] - y[j]),2.0) + pow((z[i] - z[j]),2.0));
           r_ij = sqrt(r_ij);
-          ax[i] += -G_GRAV *mass[j]/ pow(r_ij,1.5) * (x[i] - x[j]);
-          ay[i] += -G_GRAV *mass[j]/ pow(r_ij,1.5) * (y[i] - y[j]);
-          az[i] += -G_GRAV *mass[j] / pow(r_ij,1.5) * (z[i] - z[j]);
+          ax[i] += -G_GRAV *mass[j]/ pow(r_ij,3) * (x[i] - x[j]);
+          ay[i] += -G_GRAV *mass[j]/ pow(r_ij,3) * (y[i] - y[j]);
+          az[i] += -G_GRAV *mass[j] / pow(r_ij,3) * (z[i] - z[j]);
           
       }
     }    
@@ -306,9 +306,11 @@ void initialize_vel(FLOAT *vx, FLOAT *vy, FLOAT *vz, int n_points, FLOAT vel, FL
   delta_theta = 2.0*PI/n_points;
   
   for(i=0;i<3;i++){
-    vx[i] = -sin(delta_theta * i) * vel;
-    vy[i] = cos(delta_theta * i) * vel;
-      vz[i] = 0.0;
+   // vx[i] = -sin(delta_theta * i) * vel;
+   // vy[i] = cos(delta_theta * i) * vel;
+      vx[i] = 0.0;
+      vy[i] = 0.0;
+      vz[i] = vel;
   }  
 
     
@@ -338,12 +340,10 @@ FLOAT get_potential(FLOAT *x, FLOAT *y, FLOAT *z, FLOAT *vx, FLOAT *vy, FLOAT *v
     FLOAT r_ij;
     int i,j;
     for (i=0; i<n_points; i++) {
-        for (j=0; j<n_points; j++) {
-            if (j!=i) {
+        for (j=i+1; j<n_points; j++) {
                 r_ij = (pow((x[i] - x[j]),2.0) + pow((y[i] - y[j]),2.0) + pow((z[i] - z[j]),2.0));
                 r_ij = sqrt(r_ij);
                 potential += G_GRAV*mass[i]*mass[j]/(r_ij);
-            }
             
         }
     }

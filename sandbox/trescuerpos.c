@@ -21,6 +21,46 @@ FLOAT *getmemory(int n_points){
   return malloc( n_points*sizeof(FLOAT) );
 }
 
+/*
+ allocates memory for integers
+ */
+int * get_memory_int(int n_points){
+    int * x;
+    if(!(x = malloc(sizeof(int) * n_points))){
+        printf("problem with memory allocation");
+        exit(1);
+    }
+    return x;
+}
+
+
+/*
+ counts lines
+ Este método está basado en uno que puede encontrarse en el repositorio de métodos computacionales/hands_on/C
+ */
+int count_lines(char *filename){
+    FILE *in;
+    int n_lines;
+    int c;
+    if(!(in=fopen(filename, "r"))){
+        printf("problem opening file %s\n", filename);
+        exit(1);
+    }
+    
+    n_lines = 0;
+    do{
+        c = fgetc(in);
+        if(c=='\n'){
+            n_lines++;
+        }
+    }while(c!=EOF);
+    
+    rewind(in);
+    fclose(in);
+    return n_lines;
+}
+
+
 
 
 /*
@@ -87,7 +127,7 @@ void initmass(FLOAT *mass, int n_points){
  *Calculates the force on the ith partice due to the others
  */
 
-float *force(int i, FLOAT *x , FLOAT *y, float *z , FLOAT * mass, int n_points){
+float *force(int i, FLOAT *x , FLOAT *y, float *z , FLOAT * mass, int n_points, int *ID){
 
   int j;
   FLOAT F_x = 0;
@@ -95,8 +135,10 @@ float *force(int i, FLOAT *x , FLOAT *y, float *z , FLOAT * mass, int n_points){
   FLOAT F_z = 0;
   FLOAT *F = malloc(3*sizeof(FLOAT));
 
+    /*Las partículas sólo sienten aquellas que tienen ID negativo*/
+    
   for( j = 1 ; j<=n_points ; j++){
-    if( i != j ){
+    if( i != j  && ID[j]<0){
       float epsilon = 0.0; //modificacion a la gravedad
       FLOAT norm_cube = 
 	pow( pow(x[i]-x[j],2.0) + pow(y[i]-y[j],2.0) + 
@@ -120,7 +162,7 @@ float *force(int i, FLOAT *x , FLOAT *y, float *z , FLOAT * mass, int n_points){
  */
 void RK4step(FLOAT *x0 , FLOAT *y0 , FLOAT *z0 , 
 	FLOAT *vx0 , FLOAT *vy0 , FLOAT *vz0 , 
-	FLOAT *mass, FLOAT delta_t , int n_points){
+	FLOAT *mass, FLOAT delta_t , int n_points, int *ID){
 
   int i;
 
@@ -183,7 +225,7 @@ for(i = 1 ; i<=n_points ; i++){
     k1_y[i] = vy0[i];
     k1_z[i] = vz0[i];
 
-    FLOAT *f = force(i, x0, y0, z0, mass, n_points);
+    FLOAT *f = force(i, x0, y0, z0, mass, n_points, ID);
     k1_vx[i] = f[0];
     k1_vy[i] = f[1];
     k1_vz[i] = f[2];
@@ -212,7 +254,7 @@ for(i = 1 ; i<=n_points ; i++){
     k2_y[i] = vy1[i];
     k2_z[i] = vz1[i];
 
-    FLOAT *f = force(i,x1,y1,z1,mass,n_points);
+    FLOAT *f = force(i,x1,y1,z1,mass,n_points, ID);
     k2_vx[i] = f[0]/mass[i];
     k2_vy[i] = f[1]/mass[i];
     k2_vz[i] = f[2]/mass[i];
@@ -242,7 +284,7 @@ for(i = 1 ; i<=n_points ; i++){
     k3_y[i] = vy2[i];
     k3_z[i] = vz2[i];
 
-    FLOAT *f = force(i,x2,y2,z2,mass,n_points);
+    FLOAT *f = force(i,x2,y2,z2,mass,n_points, ID);
     k3_vx[i] = f[0]/mass[i];
     k3_vy[i] = f[1]/mass[i];
     k3_vz[i] = f[2]/mass[i];
@@ -259,7 +301,7 @@ for(i = 1 ; i<=n_points ; i++){
  vx3 = getmemory(n_points);
  vy3 = getmemory(n_points);
  vz3 = getmemory(n_points);
-
+    
  for( i=1 ; i<=n_points ; i++){ 
     x3[i] = x0[i] + delta_t * k3_x[i];
     y3[i] = y0[i] + delta_t * k3_y[i];
@@ -273,7 +315,7 @@ for(i = 1 ; i<=n_points ; i++){
     k4_y[i] = vy3[i];
     k4_z[i] = vz3[i];
 
-    FLOAT *f = force(i, x3, y3, z3,mass, n_points);
+    FLOAT *f = force(i, x3, y3, z3,mass, n_points, ID);
     k4_vx[i] = f[0];
     k4_vy[i] = f[1];
     k4_vz[i] = f[2];
@@ -337,7 +379,10 @@ int main(){
 
   //mass
   FLOAT *mass = getmemory(n_points);
-
+    
+  //ID
+  int *ID = get_memory_int(n_points);
+    
   //Initialization
   initpos( x , y , z , n_points );
   initvel( vx , vy , vz , n_points );
